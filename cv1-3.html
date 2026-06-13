@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Computer Vision - MCQ Quiz</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root {
+    --sky:#0EA5E9;--sky-light:#E0F2FE;--sky-dark:#0369A1;
+    --mint:#10B981;--mint-light:#D1FAE5;
+    --rose:#F43F5E;--rose-light:#FFE4E6;
+    --amber:#F59E0B;--bg:#F0F9FF;--surface:#FFFFFF;
+    --border:#BAE6FD;--text:#0C4A6E;--text-muted:#64748B;
+    --shadow:0 4px 24px rgba(14,165,233,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  header{background:linear-gradient(135deg,#0369A1 0%,#0EA5E9 60%,#38BDF8 100%);padding:28px 24px 20px;text-align:center;box-shadow:0 4px 20px rgba(3,105,161,.25);position:sticky;top:0;z-index:100}
+  header h1{font-size:clamp(1.3rem,4vw,1.9rem);font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1.2}
+  header p{color:#BAE6FD;font-size:.9rem;margin-top:4px}
+  #scoreboard{display:flex;justify-content:center;gap:12px;padding:16px 20px;background:var(--surface);border-bottom:2px solid var(--border);flex-wrap:wrap}
+  .score-pill{display:flex;align-items:center;gap:8px;background:var(--sky-light);border:1.5px solid var(--border);border-radius:50px;padding:8px 18px;font-size:.9rem;font-weight:700;color:var(--sky-dark)}
+  .score-pill .dot{width:10px;height:10px;border-radius:50%}
+  .dot-correct{background:var(--mint)}.dot-wrong{background:var(--rose)}.dot-remaining{background:var(--amber)}
+  #progress-bar-wrap{width:100%;background:var(--border);border-radius:99px;height:8px;margin:4px 0 0;overflow:hidden;max-width:600px;align-self:center}
+  #progress-bar{height:100%;background:linear-gradient(90deg,var(--sky),var(--mint));border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);width:0%}
+  #controls{display:flex;justify-content:center;gap:10px;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .btn{font-family:'Inter',sans-serif;font-weight:700;font-size:.88rem;padding:8px 20px;border-radius:50px;border:2px solid transparent;cursor:pointer;transition:all .18s}
+  .btn-danger{background:var(--rose-light);color:var(--rose);border-color:var(--rose)}
+  .btn-danger:hover{background:var(--rose);color:#fff}
+  #filter-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .filter-btn{font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;padding:6px 14px;border-radius:50px;border:1.5px solid var(--border);background:#fff;color:var(--text-muted);cursor:pointer;transition:all .15s}
+  .filter-btn.active{background:var(--sky);color:#fff;border-color:var(--sky)}
+  #quiz-container{max-width:820px;margin:0 auto;padding:24px 16px 80px}
+  .q-card{background:var(--surface);border-radius:18px;border:2px solid var(--border);margin-bottom:20px;overflow:hidden;box-shadow:var(--shadow);transition:border-color .3s}
+  .q-card.answered-correct{border-color:var(--mint)}.q-card.answered-wrong{border-color:var(--rose)}
+  .q-header{display:flex;align-items:flex-start;gap:14px;padding:18px 20px 14px}
+  .q-num{background:var(--sky-light);color:var(--sky-dark);font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:8px;white-space:nowrap;margin-top:2px;flex-shrink:0;border:1.5px solid var(--border)}
+  .q-text{font-size:1.02rem;font-weight:700;line-height:1.55;color:var(--text);flex:1}
+  .options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 20px 18px}
+  @media(max-width:580px){.options-grid{grid-template-columns:1fr}}
+  .option-btn{display:flex;align-items:center;gap:10px;background:#F8FAFC;border:2px solid #E2E8F0;border-radius:12px;padding:12px 14px;cursor:pointer;text-align:left;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;color:var(--text);transition:all .18s;width:100%;line-height:1.4}
+  .option-btn:hover:not(:disabled){border-color:var(--sky);background:var(--sky-light);transform:translateY(-1px)}
+  .option-btn:disabled{cursor:default}
+  .option-letter{width:28px;height:28px;border-radius:8px;background:#E2E8F0;color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s}
+  .option-btn.correct{background:var(--mint-light);border-color:var(--mint);color:#065F46}
+  .option-btn.correct .option-letter{background:var(--mint);color:#fff}
+  .option-btn.wrong{background:var(--rose-light);border-color:var(--rose);color:#9F1239}
+  .option-btn.wrong .option-letter{background:var(--rose);color:#fff}
+  .option-btn.dimmed{opacity:.45}
+  .explanation{display:none;margin:0 20px 18px;border-radius:12px;padding:14px 16px;font-size:.88rem;line-height:1.85;font-weight:500;animation:slideDown .3s ease}
+  .explanation.show{display:block}
+  .explanation.correct-exp{background:var(--mint-light);border:1.5px solid var(--mint);color:#065F46}
+  .explanation.wrong-exp{background:var(--rose-light);border:1.5px solid var(--rose);color:#9F1239}
+  .explanation .exp-title{font-weight:900;font-size:.9rem;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .explanation strong{font-weight:800;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .result-badge{display:none;align-items:center;gap:6px;padding:6px 14px;border-radius:50px;font-size:.82rem;font-weight:700;margin:0 20px 12px}
+  .result-badge.show{display:inline-flex}
+  .result-badge.correct-badge{background:var(--mint-light);color:#065F46}
+  .result-badge.wrong-badge{background:var(--rose-light);color:#9F1239}
+  #empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);display:none}
+  #empty-state .big-icon{font-size:3.5rem;margin-bottom:12px}
+  #empty-state h3{font-size:1.2rem;font-weight:700}
+  #final-banner{display:none;background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;border-radius:18px;padding:32px 24px;text-align:center;margin-bottom:28px;box-shadow:var(--shadow)}
+  #final-banner h2{font-size:1.8rem;font-weight:900}
+  #final-banner .big-score{font-size:3.5rem;font-weight:900;line-height:1;margin:12px 0}
+  #final-banner p{color:#BAE6FD;font-size:.95rem}
+  #scroll-top{position:fixed;bottom:24px;right:24px;width:44px;height:44px;border-radius:50%;background:var(--sky);color:#fff;border:none;font-size:1.3rem;cursor:pointer;box-shadow:0 4px 16px rgba(14,165,233,.35);display:none;align-items:center;justify-content:center;z-index:200;transition:all .2s}
+  #scroll-top:hover{background:var(--sky-dark);transform:translateY(-2px)}
+  #scroll-top.visible{display:flex}
+</style>
+<base target="_blank">
+</head>
+<body>
+<header>
+  <h1>🔭 Computer Vision – Lecture 1</h1>
+  <p>125 Questions · Select an answer to see the result instantly</p>
+</header>
+<div id="scoreboard">
+  <div class="score-pill"><span class="dot dot-correct"></span>Correct: <span id="sc-correct">0</span></div>
+  <div class="score-pill"><span class="dot dot-wrong"></span>Wrong: <span id="sc-wrong">0</span></div>
+  <div class="score-pill"><span class="dot dot-remaining"></span>Remaining: <span id="sc-remaining">125</span></div>
+  <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+</div>
+<div id="controls">
+  <div id="filter-group">
+    <button class="filter-btn active" data-filter="all">All (125)</button>
+    <button class="filter-btn" data-filter="unanswered">Unanswered</button>
+    <button class="filter-btn" data-filter="wrong">Wrong</button>
+    <button class="filter-btn" data-filter="correct">Correct</button>
+  </div>
+  <button class="btn btn-danger" id="reset-btn">↺ Reset Quiz</button>
+</div>
+<div id="quiz-container">
+  <div id="final-banner">
+    <h2>🎉 Quiz Complete!</h2>
+    <div class="big-score" id="final-score-text">0 / 125</div>
+    <p id="final-msg"></p>
+  </div>
+  <div id="empty-state">
+    <div class="big-icon">🎯</div>
+    <h3>No questions match this filter</h3>
+    <p>Try a different filter</p>
+  </div>
+  <div id="questions-wrap"></div>
+</div>
+<button id="scroll-top" title="Back to top">↑</button>
+<script>
+const RAW=[
+["What is the correct sequence of components in the computer vision pipeline analogous to human vision?","Object → Processor → Sensor → Conclusion (processor before sensor)","Object → Sensor → Processor → Conclusion","Object → Sensor → Conclusion → Processor (conclusion before processor)","Sensor → Object → Processor → Conclusion (sensor captures object first)","2","In the **CV pipeline**, the **Object** is captured by a **Sensor** (camera), processed by a **Processor** (algorithm), and a **Conclusion** is reached. This mirrors human vision: **eye (sensor)** → **brain (processor)** → **perception (conclusion)**. Correct order: **Object → Sensor → Processor → Conclusion**."],
+["Which component in computer vision corresponds to the human eye?","The sensor that captures light and images.","The digital processor used for analysis.","The algorithm that generates a final output.","The lens that stores images in memory.","1","The **Sensor** corresponds to the **human eye**. Both capture **light** and convert it into signals — the sensor converts photons into **digital signals**, the eye converts them into **neural signals**."],
+["What role does the processor play in the computer vision pipeline?","It captures images from the environment directly.","It stores all images in a permanent database.","It sends light to the object being observed.","It transforms sensor data into a conclusion.","4","The **Processor** takes raw sensor data and applies **algorithms** to transform it into a meaningful **conclusion** — analogous to the **human brain** interpreting signals from the eyes."],
+["What is the primary purpose of the Conclusion stage in computer vision?","To adjust the camera settings for better image quality.","To convert electrical signals into light energy.","To reach a final decision from the image.","To compress image data before storage.","3","The **Conclusion** stage is the **final output** of the pipeline — a **decision or understanding** about the scene. It mirrors human **perception** at the end of: Object → Sensor → Processor → **Conclusion**."],
+["Why is the computer vision pipeline structured as a sequence of distinct stages?","To reduce the number of pixels in each image.","To prevent the processor from overheating.","To mimic biological human vision.","To store multiple images in parallel channels.","3","The pipeline **mimics biological human vision**: **eye (sensor)** captures light → **brain (processor)** interprets it → **perception (conclusion)** is formed. This **biomimetic** design lets engineers solve visual problems naturally."],
+["Which of the following is NOT listed as a computer vision application in the lecture?","Weather prediction based on satellite images.","Autonomous vehicles navigating without human drivers.","Facial recognition used for security and identity.","Optical character recognition for reading documents.","1","Listed applications: **Autonomous Cars**, **Face Detection**, **Image Filtering**, **Object Recognition**, **OCR**, **Inspection in Robotics**, **Industry**. **Weather prediction** is NOT listed."],
+["What is the common purpose of all computer vision applications mentioned in the lecture?","Extract information from images or video.","They all replace human workers in factories.","They all require internet cloud computing.","They all use only RGB cameras.","1","All listed applications share the goal of **extracting information from images or video** to **interpret visual data** and make decisions or perform actions."],
+["In which application domain would you use optical character recognition (OCR)?","Detecting pedestrians in a self-driving car.","Blurring faces in a video stream.","Tracking a moving object in a sports broadcast.","Reading text from scanned documents or images.","4","**OCR (Optical Character Recognition)** is used to **read text** from scanned documents or images by converting images of printed/typed text into **machine-readable text**."],
+["What does Inspection in Robotics rely on as a core computer vision technique?","Converting speech commands into robot actions.","Analyze images for defects or robot guidance.","Storing robot movement data in cloud servers.","Increasing the speed of robotic motors.","2","**Inspection in Robotics** relies on **analyzing images** to detect **defects** or guide **robotic manipulation** — used for **quality control** and assembly guidance."],
+["Which application involves identifying and verifying a person's identity using visual data?","Face detection and recognition systems.","Image filtering to enhance photo quality.","Object segmentation for medical imaging.","Autonomous vehicle path planning.","1","**Face Detection** detects and recognizes **human faces** in images or video to **identify and verify** identity."],
+["What is the general objective of this lecture according to the course material?","To learn how to build convolutional neural networks.","To design hardware for digital cameras.","To master deep learning frameworks like TensorFlow.","Identify objects via traditional image techniques.","4","The objective is to **identify objects** in images or video using **traditional concepts**, **without using AI techniques**."],
+["How many main steps are outlined in the traditional computer vision pipeline?","Two main steps: capture and display.","Three main steps: detection, description, and matching.","Four main steps: capture, process, store, and output.","Five main steps: sensing, filtering, transforming, encoding, and decoding.","2","The pipeline has **three steps**: **Feature Detection** → **Feature Description** → **Feature Matching/Tracking**."],
+["Which step in the traditional pipeline converts detected features into numerical fingerprints?","Feature Detection process","Feature Matching process","Feature Descriptor","Feature Tracking process","3","**Feature Description** encodes each detected feature into a **series of numbers** — a numerical **fingerprint** used to identify and compare features across images."],
+["What does Feature Matching specifically involve in the traditional pipeline?","Finding corresponding descriptors across different images.","Creating numerical fingerprints for each detected feature.","Following feature movement across consecutive video frames.","Adjusting the brightness of detected features.","1","**Feature Matching** finds **descriptors in one image** that **correspond to descriptors in another image** — comparing numerical fingerprints to find the same real-world point across views."],
+["What is the difference between Feature Matching and Feature Tracking?","Matching compares images; Tracking follows video features.","Matching creates descriptors; Tracking detects edges.","Matching works with color images; Tracking works with grayscale.","Matching uses AI; Tracking uses traditional methods.","1","**Feature Matching** finds correspondences **across two images** (space), while **Feature Tracking** follows feature movement **across consecutive video frames** (time)."],
+["Which of the following is NOT listed as a type of image feature in the lecture?","Edge detection and boundary tracing","Corner point detection and localization","Texture gradient","Color channel analysis and extraction","3","Listed features: **edges**, **corners**, **circles**, **curves**, **colors**. **Texture gradient** is not mentioned."],
+["What is the fundamental purpose of image features in computer vision?","To represent patterns in images.","To increase the resolution of the image.","To compress the image file size.","To convert color images into grayscale.","1","Image **features** are **specific patterns or characteristics** within an image used to **represent its content** for detection and matching."],
+["Why are edges considered important features in image analysis?","They store the highest brightness values in the image.","They always appear as perfect straight lines.","They reduce the number of pixels needed for storage.","They indicate boundaries where intensity changes.","4","**Edges** indicate **boundaries** where **pixel intensity changes significantly** — they mark the boundaries of objects, surfaces, and textures."],
+["What makes corners more distinctive than edges for feature detection?","Corners have higher pixel intensity than edges.","Corners are exact locations where edges meet.","Corners can only be detected in color images.","Corners require less computational power to detect.","2","**Corners** are **exact locations where two edges meet** — a **single precise point**, unlike edges which span multiple points along a line."],
+["Which feature type would be most useful for detecting circular objects like wheels or coins?","Edge boundaries and outlines","Circles","Corner intersection points","Color intensity values","2","**Circles** are listed as an image feature type, making them the most suitable for detecting **circular objects** like wheels or coins."],
+["What is a feature descriptor in computer vision?","A series of numbers encoding feature information.","A visual image showing the detected feature.","A human-readable label assigned to each feature.","A filter applied to remove noise from the feature.","1","A **feature descriptor** encodes information about a detected feature into a **series of numbers** that have **no direct visual meaning** for humans — a numerical **fingerprint**."],
+["Why do feature descriptors have no meaning for humans according to the lecture?","Because they are encrypted for security purposes.","Because they are written in programming languages.","Pure numerical encodings without visual meaning.","Because they are compressed using lossy algorithms.","3","Descriptors are **pure numerical encodings** of mathematical properties (gradients, orientations, intensities) — they do not form a picture or text that humans can **visually interpret**."],
+["What is the ideal property of a feature descriptor regarding image transformations?","It should change completely whenever the image is rotated.","It should be invariant under image transformations.","It should only work with high-resolution images.","It should be larger when the image is scaled down.","2","A descriptor should be **invariant under image transformations** — remaining usable and comparable even if the image is **rotated**, **scaled**, or **translated**."],
+["How does a feature descriptor act as a fingerprint?","It leaves a physical mark on the image.","It can only be used once per image.","Differentiates one feature uniquely.","It requires ink to be visible.","3","A descriptor is a **numerical fingerprint** that **uniquely identifies** and differentiates one feature from another across different images and viewpoints."],
+["What does invariant under image transformation mean for feature descriptors?","Descriptor usable if image is scaled or rotated.","The descriptor becomes zero after transformation.","The descriptor prevents any transformation from happening.","The descriptor only works on transformed images.","1","**Invariance** means the descriptor remains **usable and comparable** despite **scaling**, **rotation**, **translation**, and **illumination** changes."],
+["In feature matching, what is the primary goal when comparing two images?","To find the brightest pixel in each image.","Find matching descriptors between two images.","To calculate the average color of both images.","To reduce the resolution of both images equally.","2","**Feature matching** finds **corresponding descriptors** between two images — identifying the same **real-world point** across different views."],
+["What does feature tracking involve in video processing?","Comparing the first and last frames only.","Deleting features that do not move in the video.","Assigning random colors to each feature.","Track feature movement across video frames.","4","**Feature Tracking** follows the **movement** of specific image features across **consecutive video frames** over time."],
+["Why are feature matching and feature tracking grouped together in the lecture?","They both use the same neural network architecture.","Both associate features across views or time.","They both require RGB images to function.","They both convert images to grayscale.","2","Both are **Step 3** because they **associate features** — **matching** across images (space) and **tracking** across video frames (time)."],
+["What is the prerequisite step before feature matching or tracking can be performed?","The image must be printed on paper.","Features must be detected and described first.","The video must be compressed to a smaller size.","All pixels must be sorted by brightness.","2","Features must be **detected** and **described** first before **matching or tracking** — the pipeline requires: **Detection → Description → Matching/Tracking**."],
+["What would happen if feature descriptors were not invariant to transformations?","Matching fails on image rotation.","The image would become too large to store.","All features would be detected as corners.","The video would play faster than normal.","1","Without **invariance**, the same physical feature would have **completely different descriptors** in different views, making **matching impossible**."],
+["What is the basic principle of a pinhole camera?","Light is reflected by a mirror onto a flat surface.","Light is absorbed by a sensor and converted to sound.","Light passes through a hole and forms an inverted image.","Light is bent by multiple lenses to create a virtual image.","3","In a **pinhole camera**, light passes through a **small hole**, and an **inverted image** is formed on the **image plane** — because light travels in straight lines."],
+["In a digital camera, what replaces the pinhole in a pinhole camera model?","Lenses to focus and capture light.","A mirror to reflect light onto a flat surface.","A flash unit to emit light continuously.","A motor to move the camera body around.","1","In **digital cameras**, the **pinhole is replaced by lenses** that **focus light** onto the sensor array."],
+["What does each sensor in a digital cameras sensor array output?","A color name like red or blue.","Number for light intensity there.","A sound wave proportional to the light.","A text description of the scene.","2","Each **sensor** outputs a **number equivalent to the light intensity** at that position — forming the **pixel values** of the digital image."],
+["What does the image plane represent in a pinhole camera?","The software used to display the image.","The lens that focuses light into the camera.","Physical location where image is formed.","The battery that powers the camera sensor.","3","The **image plane** is the physical surface where the **inverted image is formed** after light rays pass through the pinhole."],
+["How does the image formed by a pinhole camera differ from the actual object?","It is inverted and smaller than the object.","It is magnified and in the same orientation.","It is in full color while the object is grayscale.","It is a sound recording of the object.","1","A pinhole camera produces an **inverted** (upside-down) image because light travels in **straight lines** through the small hole. The image is typically **smaller** than the object."],
+["How does a computer interpret an RGB image?","As a single number representing average brightness.","As a three-channel array of numbers.","As a text file containing color names.","As a two-dimensional grid of sound waves.","2","A computer interprets an **RGB image** as a **three-channel array of numbers** — one channel each for **Red**, **Green**, and **Blue**."],
+["What do the RGB channels represent in a digital image?","The width, height, and depth of the image.","The file size, resolution, and compression level.","The x, y, and z coordinates of each pixel.","Red, green, blue intensity at each pixel.","4","**RGB channels** represent the **intensity** of **Red**, **Green**, and **Blue** at each pixel position."],
+["How are colors generated in the RGB color model?","By mixing red, green, and blue in various proportions.","By assigning a unique number to each named color.","By converting sound frequencies into light frequencies.","By printing ink dots on paper.","1","In **RGB**, the three **primary colors** (red, green, blue) are **mixed in various proportions** to generate the desired color."],
+["What is the minimum number of channels needed to represent a full-color RGB image?","One channel for brightness.","Two channels for hue and saturation.","Three channels for red, green, blue.","Four channels for CMYK color printing.","3","A full-color **RGB image** requires exactly **three channels**: **Red**, **Green**, and **Blue**."],
+["What does each pixel in an RGB channel contain?","A letter representing a color name.","A binary flag for edge detection.","Number representing color intensity.","A coordinate pair for spatial mapping.","3","Each pixel in an RGB channel contains a **number (0–255)** representing the **color intensity** of that channel."],
+["How does a computer see a grayscale image?","As a three-channel array of red, green, and blue.","As a text description of the scene.","Single-channel array of numbers.","As a video stream with multiple frames.","3","A computer sees a **grayscale image** as a **single-channel array of numbers**, where each value represents **brightness** at that pixel."],
+["What is the range of pixel values in an 8-bit grayscale image?","0 to 255.","From 0 to 100.","From -128 to 127.","From 1 to 1024.","1","In **8-bit grayscale**, pixel values range from **0** (black) to **255** (white) — giving **256 intensity levels**."],
+["What does the value 0 represent in a grayscale image?","Maximum brightness (white).","Minimum brightness.","A transparent pixel.","A missing pixel value.","2","The value **0** = **black** = **zero intensity** (completely dark pixel)."],
+["What does the value 255 represent in an 8-bit grayscale image?","The darkest possible pixel (black).","A mid-gray pixel value.","Brightest possible pixel (white).","An error in pixel storage.","3","The value **255** = **white** = **maximum intensity** (completely bright pixel)."],
+["What do the numbers in a grayscale image matrix represent?","Pixel brightness/intensity.","The color temperature of each pixel.","The distance from the camera to the object.","The file size contribution of each pixel.","1","Numbers in a grayscale matrix represent **pixel brightness (intensity)**: **0 = black** (zero intensity), **255 = white** (maximum intensity)."],
+["How is each pixel represented mathematically in image processing?","As a constant value c = 255.","As a random number generator.","As a string of text characters.","Function f(x, y).","4","Each pixel is represented as a **function f(x, y)**, enabling **mathematical operations** (filtering, differentiation) to be applied to images."],
+["What does f(x, y) represent in the image function notation?","The position of the pixel in the image file.","The color name of the pixel.","Intensity at pixel position (x, y).","The size of the pixel in millimeters.","3","**f(x, y)** is the **intensity value** of the pixel at **spatial position (x, y)**."],
+["What do (x, y) represent in the image function f(x, y)?","Position of pixel in image domain.","The width and height of the entire image.","The red and blue color intensities.","The file format and compression type.","1","**(x, y)** are the **function domain** — the **spatial coordinates** (position) of each pixel in the image."],
+["Why is the functional representation f(x, y) important for image processing?","It allows images to be stored as text files.","It reduces the number of pixels in the image.","Enables mathematical operations on images.","It converts color images into grayscale automatically.","3","The **f(x, y)** notation allows **mathematical operations** (filtering, convolution, differentiation) to be systematically **performed on images**."],
+["What is the domain of the image function f(x, y)?","The set of all possible intensity values (0 to 255).","The file size of the image in bytes.","The number of color channels in the image.","Spatial coordinates (x, y) of each pixel.","4","The **domain** of f(x, y) is the set of all **spatial coordinates (x, y)** — the **pixel positions** in the image."],
+["What is the purpose of an image filter in image processing?","To change the physical size of the image file.","To add new colors to the image palette.","To remove the image from memory.","Change the intensity values of pixels.","4","An **image filter** changes the **f(x, y) intensity values** of pixels according to a certain **mathematical function**."],
+["Which two main categories of image filtering are discussed in the lecture?","Color filtering and monochrome filtering.","Analog filtering and digital filtering.","Linear filtering and circular filtering.","Point and neighborhood operations.","4","Image filtering uses two categories: **Point Operation** (per-pixel, independent) and **Neighborhood Operation** (uses surrounding pixels / kernel)."],
+["What does a point operation filter modify in an image?","Each pixel independently based on own value.","Only the pixels at the image corners.","Only the pixels in the center of the image.","All pixels simultaneously using a global average.","1","A **point operation** is a **pixel-wise transformation** applied **independently** to each pixel based only on its **own value** — no neighbors used."],
+["What does a neighborhood operation filter consider when modifying a pixel?","Only the pixel's own value.","The file name of the image.","The time the image was captured.","Values of neighboring pixels.","4","A **neighborhood operation** modifies each pixel based on the values of its **neighboring pixels** using a **kernel** (small matrix)."],
+["What mathematical operation is used to define neighborhood filtering?","Matrix addition of the image and kernel.","Element-wise product of image & kernel.","Division of the kernel by the image pixels.","Subtraction of the image from the kernel.","2","Neighborhood filtering = **summation of element-wise multiplication** between the image and the **kernel** — this is defined as **Convolution**."],
+["What is a point operation filter in image processing?","A filter that changes pixel values based on neighboring pixels.","A filter that only works on grayscale images.","Pixel-wise transformation applied independently.","A filter that requires a video sequence to operate.","3","A **point operation** is a **pixel-wise mathematical transformation** applied **independently** to each pixel, ignoring neighboring pixels entirely."],
+["How is contrast defined in image processing according to the lecture?","The average of all pixel values in the image.","The sum of all pixel values divided by the image width.","Difference between max and min pixel values.","The standard deviation of pixel coordinates.","3","**Contrast** = **Max. pixel value − Min. pixel value** — the range of intensity values present in the image."],
+["How is brightness defined in image processing according to the lecture?","The maximum pixel value in the image.","The minimum pixel value in the image.","The product of all pixel values.","Average of all pixel values.","4","**Brightness** = **average of all pixel values** in the image."],
+["What is thresholding in image processing?","Converting an image to grayscale by averaging colors.","Adding a watermark to the image.","Splitting the image into multiple smaller files.","Converting image to black and white using a cutoff.","4","**Thresholding** converts an image to **black and white**: pixels **above** the threshold → **white (1/255)**, pixels **below** → **black (0)**."],
+["What happens to pixels with values above the threshold in a thresholding operation?","They become black (0).","They remain unchanged.","They are deleted from the image.","Become white (max intensity).","4","Pixels **above** the threshold become **white (255 / 1)** — considered **foreground or edge pixels**."],
+["What is the general term used for neighborhood filtering in image processing?","Pixel sorting algorithm.","Color quantization method.","Histogram normalization technique.","Convolution","4","Neighborhood filtering (element-wise multiplication of image patch and kernel, then summation at each position) is formally defined as **Convolution**."],
+["What is a kernel in neighborhood filtering?","A large image stored in the computer memory.","A software program for editing photos.","Small matrix moving across the image.","A color palette used for image compression.","3","A **kernel** is a **small matrix of numbers** that slides (convolves) across the image, defining the **filtering operation** at each spatial position."],
+["How is the output pixel value determined in neighborhood filtering?","By randomly selecting a neighboring pixel value.","Summing element-wise products of image and kernel.","By taking the maximum pixel value in the neighborhood.","By copying the center pixel value unchanged.","2","Output pixel = **sum of element-wise products** between the local image patch and the **kernel** — the definition of **convolution**."],
+["What property of convolution is demonstrated by the kernel moving across the image?","Shift-invariance","Color-invariance property.","Size-invariance property.","Rotation-invariance property.","1","**Shift-invariance**: as the pixel position **shifts**, the kernel shifts with it — the **same operation** is applied at every spatial location."],
+["What visual effect is produced by applying the 3x3 kernel of all ones to an image?","It sharpens the edges in the image.","It converts the image to black and white.","Produces blurring or smoothing effect.","It detects vertical edges in the image.","3","A **3×3 all-ones kernel** (box filter) computes the **local average** of the neighborhood, producing a **blurring / smoothing** effect."],
+["Which two smoothing filters are discussed in the lecture?","Box & Gaussian filters.","Median filter and Bilateral filter.","Laplacian filter and Sobel filter.","Fourier filter and Wavelet filter.","1","The two smoothing filters are the **Box Filter** (uniform equal weights) and the **Gaussian Filter** (distance-based bell-curve weights)."],
+["What visual effect do both Box and Gaussian filters produce?","Blur the image by smoothing pixel transitions.","They sharpen the image by enhancing edges.","They convert the image into a binary black and white image.","They increase the color saturation of the image.","1","Both the **Box Filter** and **Gaussian Filter** produce a **blur effect** by **smoothing pixel intensity transitions**."],
+["How does the Box filter differ from the Gaussian filter in its operation?","The Box filter works only on color images; Gaussian only on grayscale.","The Box filter requires a larger kernel than Gaussian.","Box filter uses uniform weights; Gaussian uses distance weights.","The Box filter detects edges while Gaussian smooths them.","3","**Box Filter**: **uniform (equal) weights** for all neighbors. **Gaussian Filter**: **distance-based weights** — closer pixels get higher weights, following a **bell curve**."],
+["What is the primary purpose of applying a smoothing filter to an image?","To detect edges in the image.","Reduce noise and soften transitions.","To increase the contrast between objects.","To convert the image to a different color space.","2","Smoothing filters **reduce noise** and **soften intensity transitions** in the image — preparing it for further processing."],
+["Which smoothing filter produces a more natural blur with less blockiness?","Box filter, because it uses uniform weights.","Neither filter produces any blur.","Gaussian filter uses distance weights.","Both filters produce identical results.","3","The **Gaussian Filter** produces a **more natural, gradual blur** because its **distance-based (bell-curve) weights** create smooth transitions without blockiness."],
+["What are derivative filters also known as in image processing?","Smoothing filters or averaging filters.","Color filters or chromatic filters.","Frequency filters or spectral filters.","Gradient or difference filters.","4","**Derivative filters** are also called **gradient filters** or **difference filters** — they measure how intensity **changes** across the image."],
+["What do derivative filters highlight in an image?","Areas of uniform color and constant brightness.","The exact center of circular objects.","The file size and compression ratio.","Changes in pixel intensity across image.","4","**Derivative filters** highlight **changes in pixel intensity** — they respond strongly to **edges** and produce **zero output** in flat uniform regions."],
+["How many derivative filters are needed for a 2D image, and what do they represent?","Two filters for x and y changes.","One filter for overall brightness change.","Three filters for red, green, and blue channels.","Four filters for the four corners of the image.","1","A 2D image needs **two derivative filters**: **horizontal (df/dx)** detects x-direction changes, **vertical (df/dy)** detects y-direction changes."],
+["What does the horizontal derivative filter detect?","Changes in intensity along the vertical axis.","Circular edges in the image.","Intensity changes along horizontal axis.","The overall brightness of the image.","3","The **horizontal derivative (df/dx)** detects **intensity changes in the x-direction** — it responds to **vertical edges**."],
+["What does the vertical derivative filter detect?","Changes in intensity along the horizontal axis.","Intensity changes along vertical axis.","Changes in color saturation across the image.","Changes in image file format.","2","The **vertical derivative (df/dy)** detects **intensity changes in the y-direction** — it responds to **horizontal edges**."],
+["What are the two main components combined to produce edge outlines in the Sobel filter?","The red channel and green channel.","x-derivative & y-derivative.","The image width and image height.","The file size and resolution.","2","The **Sobel filter** combines the **x-derivative (Gx)** and **y-derivative (Gy)** into a **gradient magnitude** that produces the final **edge map**."],
+["What is the kernel for the Sobel x-derivative horizontal filter?","[1 0 -1; 2 0 -2; 1 0 -1]","[1 2 1; 0 0 0; -1 -2 -1]","[1 1 1; 1 1 1; 1 1 1] (all ones)","[0 0 0; 0 1 0; 0 0 0] (identity)","1","**Sobel x-kernel**: [1 0 -1 / 2 0 -2 / 1 0 -1]. Computes **horizontal gradients** → detects **vertical edges**."],
+["What is the kernel for the Sobel y-derivative vertical filter?","[1 0 -1; 2 0 -2; 1 0 -1] (x-derivative)","[1 2 1; 0 0 0; -1 -2 -1]","[1 1 1; 1 1 1; 1 1 1]","[0 0 0; 0 1 0; 0 0 0]","2","**Sobel y-kernel**: [1 2 1 / 0 0 0 / -1 -2 -1]. Computes **vertical gradients** → detects **horizontal edges**."],
+["What type of edges does the x-derivative horizontal filter primarily detect?","Vertical edges","Horizontal edges only.","Circular edges in image.","Diagonal edges exclusively.","1","The **x-derivative (df/dx)** detects **vertical edges** — vertical boundaries produce strong **horizontal intensity changes**."],
+["What type of edges does the y-derivative vertical filter primarily detect?","Horizontal edges","Vertical edges only.","Color boundaries only.","Texture variations only.","1","The **y-derivative (df/dy)** detects **horizontal edges** — horizontal boundaries produce strong **vertical intensity changes**."],
+["Which two edge detection filters are discussed in the lecture?","Box filter and Gaussian filter.","Harris filter and Shi-Tomasi filter.","Sobel & Canny filter.","Laplacian filter and Fourier filter.","3","The two edge detection filters are the **Sobel Filter** (gradient-based, thick edges) and the **Canny Filter** (multi-stage, thin edges)."],
+["Why do edge detection filters compute the magnitude of x y derivatives?","To increase the file size of the image.","To convert the image to a color format.","To remove all pixels from the image.","Determine edge strength and presence.","4","The **gradient magnitude** (√(Gx² + Gy²)) indicates **edge strength** — **larger magnitude** = **stronger edge** (greater intensity change)."],
+["What is the relationship between derivative filters and edge detection filters?","They are completely unrelated techniques.","Derivative filters remove edges while edge detection creates them.","Edge detection filters use derivative info to find edges.","Edge detection filters are only used for color images.","3","**Edge detection filters** (Sobel, Canny) are built on **derivatives** — they use **gradient magnitude** to locate and measure **edge strength**."],
+["What does the magnitude of derivatives directly indicate in edge detection?","The color temperature of the image.","Intensity change rate, edge presence.","The physical distance between objects.","The number of pixels in the image.","2","**Gradient magnitude** = **rate of intensity change** → a **large magnitude** indicates a **strong edge** at that location."],
+["What type of image must be used as input to edge detection filters like Sobel?","A color RGB image with three channels.","A video file with multiple frames.","A text file with pixel coordinates.","Single-channel grayscale image.","4","Edge detection filters require a **single-channel grayscale image** as input — **To work on single channel**."],
+["What visual characteristic is noted about Sobel filter edges in the lecture?","They are always perfectly thin and sharp.","They are invisible to the human eye.","Thick compared to other detectors.","They are only vertical and never horizontal.","3","A key limitation of the **Sobel Filter** is that its edges **can be thick** — unlike Canny which produces **thin one-pixel-wide edges**."],
+["What is applied after the edge filter to obtain a binary black and white image?","A smoothing filter to blur the edges.","A color conversion to RGB.","A file compression algorithm.","Thresholding gradient magnitudes.","4","After applying the edge filter, a **thresholding step** on **gradient magnitudes** produces a **binary image**: edges = white, background = black."],
+["In the binary image after thresholding, what do white pixels represent?","Background areas with no edges.","Edge pixels passing threshold.","Regions of uniform color.","Areas where the gradient is zero.","2","Pixels with **gradient magnitudes above the threshold** are **edges** → set to **1 (White)**."],
+["What happens to pixels with gradient magnitudes below the threshold in edge detection?","Set to zero (black) as background.","They are set to white (1) as strong edges.","They are left unchanged at their original value.","They are converted to a grayscale mid-tone.","1","Pixels with **gradient magnitudes below the threshold** are **background** → set to **0 (Black)**."],
+["What is the purpose of thresholding in edge detection?","Classify pixels as edge or non-edge.","To increase the number of edges detected.","To add color to the edge image.","To smooth the edges before detection.","1","**Thresholding** classifies each pixel as an **edge pixel** (above threshold → **white**) or **non-edge** (below threshold → **black**) to produce a **binary edge map**."],
+["What is the first step in the Canny edge detection pipeline?","Apply Gaussian blur to remove image noise.","Apply the Sobel filter to detect edges.","Apply hysteresis thresholding to thin edges.","Apply a corner detection algorithm.","1","**Canny pipeline step 1**: **Gaussian Blur** — removes **noise** from the image before gradient computation."],
+["What is the purpose of Gaussian blur in the Canny edge detector?","To detect edges more sharply.","To convert the image to grayscale.","Remove noise pre-edge detection.","To increase the contrast of edges.","3","**Gaussian Blur** in Canny removes **noise** — preventing noise spikes from creating **false edges** in the gradient step."],
+["What does hysteresis thresholding do in the Canny edge detector?","It blurs the image to reduce noise.","Two thresholds for strong and weak edges.","It converts edges to a single pixel width.","It changes the image to RGB color.","2","**Hysteresis thresholding** uses **two thresholds** (high and low) to classify pixels as **strong edges**, **weak edges**, or **non-edges** — preserving connected edges."],
+["What is the final step in the Canny edge detection pipeline?","Gaussian blur to smooth the image.","Sobel filtering to compute gradients.","Thinning edges to one pixel wide.","Converting the image to grayscale.","3","**Canny final step**: **thinning edges** to be **one pixel wide** via **non-maximum suppression** — producing thin, precise edges."],
+["Why does the Canny filter produce thinner edges than the Sobel filter?","Canny uses a smaller kernel size.","Canny thins edges to one pixel wide.","Canny does not use any thresholding.","Canny only works on low-resolution images.","2","**Canny** includes a **thinning step (non-maximum suppression)** ensuring edges are exactly **one pixel wide** — unlike Sobel which produces **thick edges**."],
+["What visual difference is shown between Sobel and Canny edge detectors?","Sobel produces thick edges; Canny produces thin edges.","Sobel produces color edges while Canny produces grayscale.","Sobel detects only vertical edges while Canny detects all directions.","Sobel requires a color image while Canny requires grayscale.","1","Key visual difference: **Sobel = thick edges**, **Canny = thin (one-pixel-wide) edges**."],
+["What does the Canny detector preserve that Sobel might lose with higher thresholds?","Color information from the original image.","Edge details without loss.","The original image file size.","The noise present in the original image.","2","**Canny preserves edge details** while producing thin edges. **Sobel**: increasing threshold → thinner edges but **loses weak (real) edge details**."],
+["What happens when you increase the threshold value in the Sobel filter?","The edges become thicker and more numerous.","The image becomes smoother and less noisy.","The image is converted to full color.","Edges become thinner but you lose details.","4","Increasing **Sobel threshold** → **thinner edges** but **loss of edge details** — weak but real edges are discarded."],
+["Which edge detector is better for applications requiring precise edge localization?","Sobel, because it produces thick edges.","Box filter, because it smooths edges perfectly.","Gaussian filter, because it removes all noise.","Canny produces thin one-pixel edges.","4","**Canny** is better for **precise edge localization** — it produces **thin, one-pixel-wide edges** without losing details."],
+["What is the main disadvantage of the Sobel edge detector compared to Canny?","It cannot work on grayscale images.","Thick edges, loses details when thresholded.","It requires more computational steps than Canny.","It can only detect horizontal edges.","2","**Sobel's main disadvantage**: it produces **thick edges**, and increasing the threshold to thin them causes **loss of edge details**."],
+["Why are corners more precise for localization than edges?","Because corners have more pixels than edges.","Because corners are always brighter than edges.","Because edges cannot be detected by computers.","Edges change along lines; corners are points.","4","**Edges** = intensity change **along a line (multiple points)**. **Corners** = **exact point where two edges meet** — much more **precisely localized**."],
+["What does an edge indicate in terms of intensity change?","A change in intensity at exactly one point only.","No change in intensity at all.","A uniform intensity across the entire image.","Intensity change along a line (many points).","4","An **edge** indicates **intensity change along a line** (multiple points) — not a single localized point."],
+["What does a corner identify in an image?","The average brightness of the image.","Exact location where edges meet.","The center of a circular object.","The file format of the image.","2","A **corner** identifies the **exact location where two edges meet** — a single point providing precise **spatial localization**."],
+["Why are corners more distinctive than edges for matching features across different viewpoints?","Corners are invariant to changes in viewpoint and scale.","Because edges are always invisible in different viewpoints.","Because corners only appear in color images.","Because edges are always straight lines.","1","**Corners** are **more distinctive** and **invariant to viewpoint and scale changes** compared to edges — making them more **reliable for feature matching**."],
+["In the example shown in the lecture, why is the edge not matched across different viewpoints?","Because edges are too bright to be detected.","Edges not invariant, can be partially occluded.","Because edges do not exist in the image.","Because edges are only visible in one viewpoint.","2","**Edges are not invariant** to viewpoint — they may appear at different locations, be **partially occluded**, or change length when viewed from different angles."],
+["What is the fundamental definition of a corner in image processing?","A region with no intensity change in any direction.","A flat area with uniform brightness.","A pixel with the maximum intensity value.","Where two edges meet.","4","A **corner** = the **location where two edges meet** — producing **significant intensity change in all directions**."],
+["What method is used to find corners by sliding a small window on the image?","Detecting the maximum pixel value in the window.","Counting the number of colors in the window.","Measuring the physical size of objects in the window.","Detecting change in intensity while window moves.","4","Corners are found by **sliding a small window** and **detecting intensity change** as the window moves in different directions."],
+["What does no significant intensity change in all directions indicate?","A corner.","An edge.","Flat region.","A noise spike.","3","**No significant intensity change in any direction** → **flat region** (no features present)."],
+["What does significant change in only one direction indicate?","Edge.","A corner.","A flat region.","A circular object.","1","**Significant change in only one direction** → **edge** (boundary along one axis)."],
+["What does significant change in all directions indicate?","A flat region with no features.","An edge with a single gradient direction.","Corner where edges meet.","A smooth gradient without boundaries.","3","**Significant change in all directions** → **corner** (two edges meeting at a point)."],
+["Which two corner detection techniques are discussed in the lecture?","Sobel and Canny methods.","Box and Gaussian filters.","Laplacian and Fourier transforms.","Harris and Shi-Tomasi.","4","The two corner detectors are: **Harris Corner Detector** and **Shi-Tomasi Corner Detector**."],
+["What does the Harris Corner Detector calculate to identify corners?","The average brightness of the entire image.","The number of edges in the image.","The file size of the image.","Corner response from intensity variations.","4","**Harris Corner Detector** calculates the **corner response function** based on **intensity variation** in different directions using the **structure tensor (M)**."],
+["How does the Shi-Tomasi Corner Detector differ from the Harris Corner Detector?","It detects edges instead of corners.","Different criterion for significant corners.","It only works on color images.","It requires a larger kernel size than Harris.","2","**Shi-Tomasi** uses a **different selection criterion** — choosing corners based on the **minimum eigenvalue** of M, often yielding **more robust** results than Harris."],
+["What is the common principle behind both Harris and Shi-Tomasi detectors?","Both compute corner response from intensity shifts.","They both use thresholding to convert images to binary.","They both apply Gaussian blur before Sobel filtering.","They both count the number of pixels in each corner.","1","Both **Harris** and **Shi-Tomasi** compute a **corner response function** from **local intensity variations** in the neighborhood."],
+["What advantage does the Shi-Tomasi detector often have over Harris?","It is faster to compute on large images.","It only detects corners in the center of the image.","Often results in more robust corner detection.","It requires less memory than Harris.","3","**Shi-Tomasi** often results in **more robust corner detection** by using a **better selection criterion** for the most significant corners."],
+["What is the correct order of the traditional computer vision pipeline steps?","Description → Detection → Matching","Detection, Description, Matching","Matching → Detection → Description","Detection → Matching → Description","2","Correct order: **Feature Detection** → **Feature Description** → **Feature Matching/Tracking**."],
+["Which lecture topic is explicitly stated as the focus of this lecture?","Feature Description and Matching.","Feature Detection edges, corners.","Deep Learning and Neural Networks.","Camera Hardware Design.","2","This lecture focuses **only on Step 1**: **Feature Detection** — specifically **edges** and **corners**."],
+["What is the relationship between image function f(x, y) and image filtering?","Image filtering has no relationship to the image function.","Image filtering changes f(x,y) values per function.","Image filtering only changes the x and y coordinates.","Image filtering converts f(x, y) to a text string.","2","**Image filtering** changes the **f(x, y) intensity values** of pixels according to a **mathematical function** — either point-wise or via convolution."],
+["What is the mathematical operation called when a kernel is applied to an image using element-wise multiplication and summation?","Convolution.","Correlation operation.","Integration process.","Differentiation method.","1","Applying a **kernel** to an image via **element-wise multiplication and summation** at every position is **Convolution**."],
+["What is the output of a derivative filter when applied to a region of constant intensity?","A very large positive value.","The maximum pixel value (255).","A random number between 0 and 255.","Zero because no intensity change.","4","In a **constant-intensity region**, the derivative = **zero** — derivative filters **suppress flat regions** and **highlight edges**."],
+["What does the Sobel filter produce when it computes the magnitude of x and y derivatives?","A binary black and white image directly.","A color image with red and blue channels.","A text file with pixel coordinates.","Grayscale image showing strong edges.","4","**Sobel magnitude** produces a **grayscale image** where intensity = **edge strength**. A **thresholding step** is needed to produce a binary edge map."],
+["What is the purpose of the Canny detectors multi-stage pipeline compared to the simple Sobel filter?","To make the computation faster.","To convert the image to a color format.","Thin precise edges preserving details.","To reduce the image resolution.","3","**Canny's multi-stage pipeline** (Gaussian → gradient → NMS → hysteresis → thinning) produces **thin, precise edges while preserving details** — unlike simple Sobel thresholding."],
+["What does a corner detector look for when sliding a window across the image?","The maximum pixel value in each window.","The exact center of the image.","The number of colors present in each window.","Regions with intensity changes everywhere.","4","A **corner detector** looks for regions with **significant intensity change in all directions** — distinguishing **corners** from **flat regions** and **edges**."],
+["In the context of the lecture, what is a feature in computer vision?","A software bug in the image processing program.","A menu option in a photo editing application.","Pattern representing image content.","A type of image file compression.","3","A **feature** = a **specific pattern or characteristic** within an image used to **represent its content** (e.g., edges, corners, circles)."]
+];
+
+function boldify(t){return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}
+
+const QUESTIONS=RAW.map((r,i)=>({
+  num:i+1,
+  text:r[0],
+  options:[r[1],r[2],r[3],r[4]],
+  correct:r[5]-1,
+  explanation:boldify(r[6]),
+  state:'unanswered'
+}));
+
+let currentFilter='all';
+const qWrap=document.getElementById('questions-wrap');
+const scCorrect=document.getElementById('sc-correct');
+const scWrong=document.getElementById('sc-wrong');
+const scRemain=document.getElementById('sc-remaining');
+const progressBar=document.getElementById('progress-bar');
+const finalBanner=document.getElementById('final-banner');
+const emptyState=document.getElementById('empty-state');
+
+function getStats(){
+  const correct=QUESTIONS.filter(q=>q.state==='correct').length;
+  const wrong=QUESTIONS.filter(q=>q.state==='wrong').length;
+  const remain=QUESTIONS.filter(q=>q.state==='unanswered').length;
+  return{correct,wrong,remain};
+}
+function updateScoreboard(){
+  const{correct,wrong,remain}=getStats();
+  scCorrect.textContent=correct;scWrong.textContent=wrong;scRemain.textContent=remain;
+  progressBar.style.width=((correct+wrong)/QUESTIONS.length*100)+'%';
+  if(remain===0)showFinalBanner();
+}
+function showFinalBanner(){
+  const{correct}=getStats();
+  finalBanner.style.display='block';
+  document.getElementById('final-score-text').textContent=correct+' / '+QUESTIONS.length;
+  const pct=Math.round(correct/QUESTIONS.length*100);
+  let msg=pct>=90?'🌟 Excellent! You are fully prepared for the exam!':pct>=75?'💪 Very good! Review your wrong answers.':pct>=60?'📖 Not far off! Review the lecture and try again.':'🔄 More study needed — revisit the lecture.';
+  document.getElementById('final-msg').textContent='Score: '+pct+'% — '+msg;
+}
+function getFilteredQuestions(){
+  return currentFilter==='all'?QUESTIONS:QUESTIONS.filter(q=>q.state===currentFilter);
+}
+function renderQuestions(){
+  const filtered=getFilteredQuestions();
+  qWrap.innerHTML='';
+  emptyState.style.display=filtered.length===0?'block':'none';
+  filtered.forEach(q=>{
+    const card=document.createElement('div');
+    card.className='q-card'+(q.state!=='unanswered'?' answered-'+q.state:'');
+    card.id='card-'+q.num;
+    const letters=['A','B','C','D'];
+    const opts=q.options.map((opt,i)=>{
+      let cls='option-btn';
+      if(q.state!=='unanswered'){
+        if(i===q.correct)cls+=' correct';
+        else if(i===q.chosen&&q.state==='wrong')cls+=' wrong';
+        else cls+=' dimmed';
+      }
+      return'<button class="'+cls+'" data-q="'+q.num+'" data-i="'+i+'"'+(q.state!=='unanswered'?' disabled':'')+'>'+
+        '<span class="option-letter">'+letters[i]+'</span><span>'+opt+'</span></button>';
+    }).join('');
+    let expHTML='';
+    if(q.state!=='unanswered'){
+      const ok=q.state==='correct';
+      expHTML='<div class="result-badge '+(ok?'correct-badge':'wrong-badge')+' show">'+(ok?'✅ Correct Answer':'❌ Wrong Answer')+'</div>'+
+        '<div class="explanation '+(ok?'correct-exp':'wrong-exp')+' show"><div class="exp-title">💡 Explanation</div>'+q.explanation+'</div>';
+    }
+    card.innerHTML='<div class="q-header"><span class="q-num">Q'+q.num+'</span><span class="q-text">'+q.text+'</span></div>'+
+      '<div class="options-grid">'+opts+'</div>'+expHTML;
+    qWrap.appendChild(card);
+  });
+  qWrap.querySelectorAll('.option-btn:not([disabled])').forEach(btn=>{
+    btn.addEventListener('click',()=>handleAnswer(parseInt(btn.dataset.q),parseInt(btn.dataset.i)));
+  });
+}
+function handleAnswer(qNum,chosenIdx){
+  const q=QUESTIONS.find(x=>x.num===qNum);
+  if(!q||q.state!=='unanswered')return;
+  q.chosen=chosenIdx;
+  q.state=chosenIdx===q.correct?'correct':'wrong';
+  const card=document.getElementById('card-'+qNum);
+  if(!card)return;
+  card.classList.add('answered-'+q.state);
+  card.querySelectorAll('.option-btn').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===q.correct)btn.classList.add('correct');
+    else if(i===chosenIdx&&q.state==='wrong')btn.classList.add('wrong');
+    else btn.classList.add('dimmed');
+  });
+  if(!card.querySelector('.explanation')){
+    const ok=q.state==='correct';
+    const badge=document.createElement('div');
+    badge.className='result-badge '+(ok?'correct-badge':'wrong-badge')+' show';
+    badge.innerHTML=ok?'✅ Correct Answer':'❌ Wrong Answer';
+    const exp=document.createElement('div');
+    exp.className='explanation '+(ok?'correct-exp':'wrong-exp')+' show';
+    exp.innerHTML='<div class="exp-title">💡 Explanation</div>'+q.explanation;
+    card.appendChild(badge);card.appendChild(exp);
+  }
+  setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+  updateScoreboard();updateFilterCounts();
+}
+function updateFilterCounts(){
+  const{correct,wrong,remain}=getStats();
+  document.querySelectorAll('.filter-btn').forEach(btn=>{
+    const f=btn.dataset.filter;
+    if(f==='all')btn.textContent='All ('+QUESTIONS.length+')';
+    else if(f==='unanswered')btn.textContent='Unanswered ('+remain+')';
+    else if(f==='wrong')btn.textContent='Wrong ('+wrong+')';
+    else if(f==='correct')btn.textContent='Correct ('+correct+')';
+  });
+}
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');currentFilter=btn.dataset.filter;
+    finalBanner.style.display='none';renderQuestions();
+  });
+});
+document.getElementById('reset-btn').addEventListener('click',()=>{
+  if(!confirm('Reset quiz? All your answers will be cleared.'))return;
+  QUESTIONS.forEach(q=>{q.state='unanswered';delete q.chosen;});
+  currentFilter='all';
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-filter="all"]').classList.add('active');
+  finalBanner.style.display='none';updateScoreboard();updateFilterCounts();renderQuestions();
+});
+const scrollTopBtn=document.getElementById('scroll-top');
+window.addEventListener('scroll',()=>scrollTopBtn.classList.toggle('visible',window.scrollY>400));
+scrollTopBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+updateScoreboard();updateFilterCounts();renderQuestions();
+</script>
+</body>
+</html>
